@@ -74,5 +74,7 @@ class YsFuck:
         print(dl)
         time.sleep(0.3)
 
+
+
         # pyautogui.moveTo(image_center)
         pyautogui.click(dl)
