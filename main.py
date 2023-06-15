@@ -1,136 +1,193 @@
-import os
-import random
 import sys
 import threading
-import time
 
 import keyboard
-import pyautogui
+import ttkbootstrap as ttk
+from ttkbootstrap.constants import *
+import ctypes
 
-# 软件开始
+from ystools import YsFuck
 
-
-def main():
-    print('欢迎使用原神自动跳剧情工具Hosea制作')
-    print('如需其他定制VX:HoseaDev')
-    print('图像识别模拟鼠标点击，鼠标点击地方也是随机的，不改内存不会有封号的风险。')
-    print('需要右键以管理员身份运行否则无效！！！')
-    print('需要右键以管理员身份运行否则无效！！！')
-    print('需要右键以管理员身份运行否则无效！！！')
-    print('使用方法:')
-    print('暂时只支持2560*1440分辨率')
-    print('暂时只支持2560*1440分辨率')
-    print('图像->图像质量为：中      |       显示模式:2560x1440独占全屏')
-    print('按F10开始   按F11停止  按F12退出')
-    # 在原神窗口中启动监听器
-    keyboard.on_press(on_press)
-    # keyboard.on_release(on_release)
-    keyboard.wait('f12')
-    print('end!!')
+version = "1.0.1"
+thread = None  # 全局变量，用于存储线程对象
 
 
-def get_resource_path(relative_path):
-    if hasattr(sys, '_MEIPASS'):
-        return os.path.join(sys._MEIPASS, relative_path)
-    return os.path.join(os.path.abspath("."), relative_path)
+# 判断操作系统
+# 检查用户是否是管理员
+def is_admin():
+    try:
+        return ctypes.windll.shell32.IsUserAnAdmin()
+    except:
+        return False
 
 
-def randomSleep():
-    t = random.randint(1, 3)
-    time.sleep(t)
-    print('睡眠了 %s 秒' % t)
+class FuckerUI(ttk.Frame):
+    def __init__(self, master):
+        super().__init__(master)
+        self.runState_ui = None
+        self.pack(fill=BOTH, expand=YES)
 
+        self.runStateStr = ttk.StringVar(value="")
+        self.isFuckPlot = ttk.BooleanVar(value=True)
+        self.isPickUp = ttk.BooleanVar(value=False)
+        self.setupUI().pack(fill=BOTH, expand=YES)
+        # self.bagel = setup_demo()
+        # self.bagel.pack(fill=BOTH, expand=YES)
 
-def clickDialog(dl):
-    # 如果找到了，则获取其中心坐标并鼠标移动到其上方
-    print('点击对话')
-    print(dl)
-    time.sleep(0.3)
-    # pyautogui.moveTo(image_center)
-    pyautogui.click(dl)
+    def setupUI(self):
+        root = ttk.Frame(self, padding=10)
+        style = ttk.Style()
+        theme_names = style.theme_names()
 
-def generateRandomLocation():
-    x = random.randint(200, 1600)
-    y = random.randint(100, 1100)
-    return x, y
+        theme_selection = ttk.Frame(root, padding=(10, 10, 10, 0))
+        theme_selection.pack(fill=X, expand=YES)
 
+        theme_selected = ttk.Label(
+            master=theme_selection,
+            text="FuckYsPlotTools",
+            font="-size 24 -weight bold"
+        )
+        theme_selected.pack(side=LEFT)
 
-def startFuck():
-    pyautogui.FAILSAFE = True  # 启用自动防故障功能，左上角的坐标为（0，0），将鼠标移到屏幕的左上角，来抛出failSafeException异常
-    width, height = pyautogui.size()  # 屏幕的宽度和高度
-    print(width, height)
-    # 在指定区域内查找图像
-    global is_run
-    while is_run:
-        # 当在原神中的时候才开始找图
-        if '原神' in pyautogui.getActiveWindowTitle():
-            # print('当前原神窗口 %s' % threading.current_thread().name)
-            # time.sleep(1)
-            # print(is_run)
-            # 查找头像如果有图像剧情结束
-            avatarLocation = pyautogui.locateOnScreen(get_resource_path(
-                "./images/avatar.png"), region=(60, 50, 20, 20), confidence=0.8)
-            # 没有进入剧情什么都不做
-            if avatarLocation is not None:
-                print('找到头像。')
-                time.sleep(1)
-                continue
+        lframe = ttk.Frame(root, padding=5)
+        lframe.pack(side=LEFT, fill=BOTH, expand=YES)
 
-                # 查找头像如果有图像剧情结束
-            plotStartLocation = pyautogui.locateOnScreen(get_resource_path(
-                "./images/plot_start.png"), region=(84, 48, 25, 33), confidence=0.8)
-            if plotStartLocation is not None:
-                # 如果找到了，则获取其中心坐标并鼠标移动到其上方
-                print('进入剧情模式...')
-                time.sleep(0.3)
-                # 随机点击
-                pyautogui.click(generateRandomLocation())
-                dialogLocation = pyautogui.locateOnScreen(get_resource_path(
-                    "./images/dialog.png"), region=(1688, 739, 69,393), confidence=0.7)
-                dialogLocation2 = pyautogui.locateOnScreen(get_resource_path(
-                    "./images/dialog2.png"), region=(1689, 749,  69,393), confidence=0.7)
-                if dialogLocation is not None:
-                   clickDialog(dialogLocation)
-                elif dialogLocation2 is not None:
-                   clickDialog(dialogLocation2)
+        rframe = ttk.Frame(root, padding=5)
+        rframe.pack(side=RIGHT, fill=BOTH, expand=YES)
 
+        color_group = ttk.Labelframe(
+            master=lframe,
+            text="操作按钮支持快捷键",
+            padding=10
+        )
+        color_group.pack(fill=X, side=BOTTOM)
+
+        cb1 = ttk.Button(color_group, text='F10-开始', bootstyle='primary', command=self.on_start)
+        cb2 = ttk.Button(color_group, text='F11-停止', bootstyle='info', command=self.on_pause)
+        cb3 = ttk.Button(color_group, text='退出', bootstyle='danger', command=self.on_exit)
+        if is_admin():
+            self.runStateStr.set("当前软件可以运行，已获得管理员权限")
+            self.runState_ui = ttk.Label(color_group, textvariable=self.runStateStr, foreground='#00ff00')
         else:
-            time.sleep(2)
-            print('当前活动窗口不是原神')
+            self.runStateStr.set("请退出软件后，点击右键已管理员身份运行")
+            self.runState_ui = ttk.Label(color_group, textvariable=self.runStateStr, foreground='#ff0000')
 
+        self.runState_ui.pack(pady=5, fill=X)
+        cb1.pack(side=LEFT, expand=YES, padx=5, fill=X)
+        cb2.pack(side=LEFT, expand=YES, padx=5, fill=X)
+        cb3.pack(side=LEFT, expand=YES, padx=5, fill=X)
 
-class Fucker(threading.Thread):
-    def run(self):
-        global is_run
-        is_run = True
-        # print('start fuck')
-        startFuck()
-        pass
+        ttframe = ttk.Frame(lframe)
+        ttframe.pack(pady=5, fill=X, side=TOP)
+
+        # # notebook with table and text tabs
+        lfOperation = ttk.Labelframe(
+            master=lframe,
+            text="操作区",
+            padding=(10, 5)
+        )
+        lfOperation.pack(fill=BOTH, expand=YES)
+
+        operationStr = '软件名为:FuckYsPlot 软件版本：' + version + \
+                       '该软件为免费使用，如果您花钱够买了那抱歉！\n' + \
+                       '欢迎使用原神自动跳剧情工具Hosea制作\n' + \
+                       '图像识别模拟鼠标点击，鼠标点击地方也是随机的，不改内存理论上不会有封号的风险。\n' + \
+                       '需要右键以管理员身份运行否则无效\n' + \
+                       '使用方法:\n' + \
+                       '暂时只支持2560*1440分辨率\n' + \
+                       '图像->图像质量为：中      |       显示模式:2560x1440'
+        ttk.Label(lfOperation, text=operationStr).pack(pady=5, fill=X)
+
+        btn_group = ttk.Labelframe(
+            master=rframe,
+            text="功能开关",
+            padding=(10, 10),
+        )
+        btn_group.pack(fill=X, pady=10)
+        cb1 = ttk.Checkbutton(
+            master=btn_group,
+            text="开启过剧情",
+            bootstyle=(SUCCESS, ROUND, TOGGLE),
+            variable=self.isFuckPlot
+        )
+        # cb1.invoke()
+        # cb1.invoke()
+        cb1.pack(fill=X, pady=5)
+        cb2 = ttk.Checkbutton(
+            master=btn_group,
+            text="开启点击自动探索和自动结束(开发中...)",
+            bootstyle=(SUCCESS, ROUND, TOGGLE),
+
+        )
+        cb2.pack(fill=X, pady=5)
+        cb3 = ttk.Checkbutton(
+            master=btn_group,
+            text="自动F拾取物品(开发中...)",
+            bootstyle=(SUCCESS, ROUND, TOGGLE),
+
+        )
+        cb3.pack(fill=X, pady=5)
+        cb4 = ttk.Checkbutton(
+            master=btn_group,
+            text="辅助强化+4胚子(开发中...)",
+            bootstyle=(SUCCESS, ROUND, TOGGLE),
+
+        )
+        cb4.pack(fill=X, pady=5)
+        # cb.config.text="123456"
+
+        return root
+
+    def on_start(self):
+        global thread  # 引用全局变量
+        print("开始。。")
+        print(self.isFuckPlot.get())
+        self.runStateStr.set("软件运行中...")
+        self.runState_ui.configure(foreground='#00ff00')
+        # 创建线程池
+        if not thread or not thread.is_alive():  # 检查是否已经存在线程
+            # 创建线程并启动
+            if self.isFuckPlot.get():
+                yf.isPlotRun = True
+            else:
+                yf.isPlotRun = False
+
+            print('fuck%b', yf.isPlotRun)
+            thread = threading.Thread(target=yf.startFuck)
+            thread.start()
+        else:
+            print('已存在线程')
+
+    def on_pause(self):
+        print('暂停')
+        self.runStateStr.set("软件已停止")
+        self.runState_ui.configure(foreground= '#ff0000')
+        yf.isPlotRun = False
+        global thread  # 引用全局变量
+        if thread and thread.is_alive():
+            # thread.join()
+            thread = None
+        print('已暂停')
+
+    def on_exit(self):
+        sys.exit("See you !")
 
 
 def on_press(key):
     # 当按键按下时，调用此函数。
-    # print(f'{key.name  } is pressed')
+    print(f'{key.name} is pressed')
     if key.name == 'f10':
-        print('开启软件')
-        fucker = Fucker()
-        fucker.start()
-
+        fui.on_start()
 
     if key.name == 'f11':
-        global is_run
-        is_run = False
-        print('暂停')
-    # if key.name == 'f12':
-    #     global  is_run
-    #     is_run = False
-    #
-    #     print('终止')
+        fui.on_pause()
 
 
-is_run = False
-# 监听按键事件
-# 检查当前窗口是否为原神窗口，如果是，开始监听按键
 if __name__ == '__main__':
-    main()
-
+    app = ttk.Window("FuckYSPlot")
+    # 在原神窗口中启动监听器
+    keyboard.on_press(on_press)
+    # keyboard.on_release(on_release)
+    yf = YsFuck(True)
+    fui = FuckerUI(app)
+    app.mainloop()
