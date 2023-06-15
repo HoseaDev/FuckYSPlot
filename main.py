@@ -12,7 +12,7 @@ version = "1.0.1"
 thread = None  # 全局变量，用于存储线程对象
 
 
-# 判断操作系统
+
 # 检查用户是否是管理员
 def is_admin():
     try:
