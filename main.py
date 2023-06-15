@@ -27,6 +27,7 @@ class FuckerUI(ttk.Frame):
         self.runState_ui = None
         self.pack(fill=BOTH, expand=YES)
 
+
         self.runStateStr = ttk.StringVar(value="")
         self.isFuckPlot = ttk.BooleanVar(value=True)
         self.isPickUp = ttk.BooleanVar(value=False)
