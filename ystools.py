@@ -21,6 +21,8 @@ class YsFuck:
             return os.path.join(sys._MEIPASS, relative_path)
         return os.path.join(os.path.abspath("."), relative_path)
 
+
+
     def startFuck(self):
         pyautogui.FAILSAFE = True  # 启用自动防故障功能，左上角的坐标为（0，0），将鼠标移到屏幕的左上角，来抛出failSafeException异常
         width, height = pyautogui.size()  # 屏幕的宽度和高度
@@ -47,21 +49,22 @@ class YsFuck:
                 if plotStartLocation is not None:
                     # 如果找到了，则获取其中心坐标并鼠标移动到其上方
                     print('进入剧情模式...')
-                    time.sleep(0.3)
+                    time.sleep(0.1)
                     # 随机点击
-                    (x,y)= self.generateRandomLocation()
-                    print('x=%s',x)
-                    print('y=%s',y)
+                    (x, y) = self.generateRandomLocation()
+                    print('x=%s', x)
+                    print('y=%s', y)
                     pyautogui.click(x=x, y=y)
-                    # pyautogui.moveTo(0,0)
-                    dialogLocation = pyautogui.locateOnScreen(self.get_resource_path(
-                        "./images/dialog.png"), region=(1688, 739, 69, 393), confidence=0.7)
-                    dialogLocation2 = pyautogui.locateOnScreen(self.get_resource_path(
-                        "./images/dialog2.png"), region=(1689, 749, 69, 393), confidence=0.7)
-                    if dialogLocation is not None:
-                        self.clickDialog(dialogLocation)
-                    elif dialogLocation2 is not None:
-                        self.clickDialog(dialogLocation2)
+                    time.sleep(0.15)
+                    pyautogui.press("f")
+                    # dialogLocation = pyautogui.locateOnScreen(self.get_resource_path(
+                    #     "./images/dialog.png"), region=(1688, 739, 69, 393), confidence=0.7)
+                    # dialogLocation2 = pyautogui.locateOnScreen(self.get_resource_path(
+                    #     "./images/dialog2.png"), region=(1689, 749, 69, 393), confidence=0.7)
+                    # if dialogLocation is not None:
+                    #     self.clickDialog(dialogLocation)
+                    # elif dialogLocation2 is not None:
+                    #     self.clickDialog(dialogLocation2)
 
             else:
                 time.sleep(2)
@@ -73,8 +76,6 @@ class YsFuck:
         print('点击对话')
         print(dl)
         time.sleep(0.3)
-
-
 
         # pyautogui.moveTo(image_center)
         pyautogui.click(dl)

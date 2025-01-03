@@ -141,6 +141,9 @@ class FuckerUI(ttk.Frame):
         # cb.config.text="123456"
 
         return root
+    # def on_daily(self):
+    #     yf.on_daily()
+
 
     def on_start(self):
         global thread  # 引用全局变量
@@ -173,6 +176,11 @@ class FuckerUI(ttk.Frame):
             thread = None
         print('已暂停')
 
+
+
+
+
+
     def on_exit(self):
         sys.exit("See you !")
 
@@ -185,6 +193,8 @@ def on_press(key):
 
     if key.name == 'f11':
         fui.on_pause()
+    if key.name == 'f5':
+        yf.on_daily()
 
 
 if __name__ == '__main__':
